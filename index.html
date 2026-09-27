@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Piano Tile</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+
+            width: 100%;
+            height: 100%;
+
+            overflow: hidden;
+
+            background: #ffffff;
+        }
+
+        #game {
+            position: relative;
+
+            width: 100%;
+            height: 100%;
+
+            overflow: hidden;
+        }
+
+
+        /* =========================
+           레인 구분선
+        ========================= */
+
+        .lane-line {
+            position: absolute;
+
+            top: 0;
+
+            width: 1px;
+            height: 100%;
+
+            background: #000000;
+        }
+
+        #line1 {
+            left: 25%;
+        }
+
+        #line2 {
+            left: 50%;
+        }
+
+        #line3 {
+            left: 75%;
+        }
+
+
+        /* =========================
+           타일
+        ========================= */
+
+        .tile {
+            position: absolute;
+
+            width: 25%;
+            height: 25%;
+
+            background: #000000;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+    <div id="game">
+
+        <div id="line1" class="lane-line"></div>
+
+        <div id="line2" class="lane-line"></div>
+
+        <div id="line3" class="lane-line"></div>
+
+    </div>
+
+
+    <script>
+
+        const Speed = 12;
+
+        const game =
+            document.getElementById("game");
+
+        const tiles = [];
+
+        let previousLane = 0;
+
+        let lastTime =
+            performance.now();
+
+
+        function randomLane() {
+
+            return Math.floor(
+                Math.random() * 4
+            ) + 1;
+        }
+
+
+        function randomLaneExcept(previousLane) {
+
+            let lane;
+
+            do {
+
+                lane = randomLane();
+
+            } while (lane === previousLane);
+
+            return lane;
+        }
+
+
+        function createTile(y) {
+
+            let lane;
+
+            if (previousLane === 0) {
+
+                lane = randomLane();
+
+            } else {
+
+                lane =
+                    randomLaneExcept(previousLane);
+            }
+
+            previousLane = lane;
+
+
+            const tile =
+                document.createElement("div");
+
+            tile.className = "tile";
+
+            tile.style.left =
+                ((lane - 1) * 25) + "%";
+
+            tile.style.top =
+                y + "px";
+
+
+            tile.addEventListener("click", function() {
+
+                tile.style.background = "#0000ff";
+            });
+
+
+            game.appendChild(tile);
+
+            tiles.push(tile);
+        }
+
+
+        const tileHeight =
+            game.clientHeight * 0.25;
+
+
+        for (let i = 0; i < 5; i++) {
+
+            createTile(
+                -(tileHeight * i)
+            );
+        }
+
+
+        function moveTile(currentTime) {
+
+            const deltaTime =
+                (currentTime - lastTime) / 1000;
+
+            lastTime = currentTime;
+
+
+            const moveDistance =
+                tileHeight *
+                Speed *
+                deltaTime;
+
+
+            for (let i = 0; i < tiles.length; i++) {
+
+                let tileY =
+                    parseFloat(
+                        tiles[i].style.top
+                    );
+
+                tileY =
+                    tileY + moveDistance;
+
+                tiles[i].style.top =
+                    tileY + "px";
+            }
+
+
+            if (
+                parseFloat(tiles[0].style.top)
+                >= game.clientHeight
+            ) {
+
+                tiles[0].remove();
+
+                tiles.shift();
+
+                const lastTile =
+                    tiles[tiles.length - 1];
+
+                const lastTileY =
+                    parseFloat(
+                        lastTile.style.top
+                    );
+
+                createTile(
+                    lastTileY - tileHeight
+                );
+            }
+
+
+            requestAnimationFrame(moveTile);
+        }
+
+
+        requestAnimationFrame(moveTile);
+
+    </script>
+
+</body>
+
+</html>
